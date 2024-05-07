@@ -75,6 +75,25 @@ def collabo_commmun(acteur1,acteur2,films):
                 collabos_en_commun.add(collabo_acteur1)
     return collabos_en_commun
 
+
+def creer_liaison(film):
+    res = []
+    for acteur1 in film["cast"]:
+
+        for acteur2 in film["cast"]:
+            liaison = [acteur1]
+            liaison.append(acteur2)
+            res.append(liaison)
+    return res
+
+un_film = charge_fichier("data_test.txt")[0]
+#print(creer_liaison(un_film))
+
+
+
+
+# Q3
+
 def collaborateurs_proches(G,u,k):
     """Fonction renvoyant l'ensemble des acteurs à distance au plus k de l'acteur u dans le graphe G. La fonction renvoie None si u est absent du graphe.
         
@@ -99,15 +118,17 @@ def collaborateurs_proches(G,u,k):
     return collaborateurs
 
 
-def creer_liaison(film):
-    res = []
-    for acteur1 in film["cast"]:
+def est_proche(G,u,v,k=1):
+    if v in collaborateurs_proches(G,u,k):
+        return True
+    else:
+        return False
+    
+def distance_naive(G,u,v):
+    k=1
+    while (u not in collaborateurs_proches(G,v,k)):
+        k+=1
+    return k
 
-        for acteur2 in film["cast"]:
-            liaison = [acteur1]
-            liaison.append(acteur2)
-            res.append(liaison)
-    return res
-
-un_film = charge_fichier("data_test.txt")[0]
-#print(creer_liaison(un_film))
+def distance(G,u,v):
+    ...
