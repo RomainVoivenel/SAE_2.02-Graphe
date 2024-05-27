@@ -1,9 +1,10 @@
-#import networkx as nx
+import networkx as nx
+import matplotlib.pyplot as plt
 import json
 
 #G = nx.Graph()
 
-def charge_fichier(nom_fichier):
+def charge_fichier(nom_fichier:str):
     """Creer une liste de films
 
     Args:
@@ -19,78 +20,66 @@ def charge_fichier(nom_fichier):
     fic.close()
     return fichier_chargee
 
-les_films = charge_fichier("data.txt")
+def creer_json(un_fichier:str):
+    """Permet de convertir un fichier txt en json
 
-#A finir
-def creer_json(un_fichier):
+    Args:
+        un_fichier (str): un fichier txt
+    """
+    txt_file = charge_fichier(un_fichier)
     json_file = open("data.json", "w")
     with open(un_fichier) as fic:
-        for ligne in fic:
-            ligne = eval(ligne+"\n")
-            json.dump(ligne,json_file,sort_keys = False,ensure_ascii=False)
-
+        json.dump(txt_file,json_file,sort_keys=False,ensure_ascii=False)
     json_file.close()
 
-creer_json("data_test.txt")
-
-def collabo(un_acteur,films):
-    """Permet d'avoir les collaborateurs d'un acteur
+def tout_les_acteurs(un_fichier:str):
+    """Permet d'avoir l'ensemble des acteurs dans un fichier json
 
     Args:
-        acteur (str): un acteur
-        films (list): une liste de film
+        un_fichier (str): un fichier json
 
     Returns:
-        set: un ensemble d'acteurs
+        set: l'ensemble des acteurs
     """
-    les_collabos = set()
-    for film in films:
-        for acteur in film["cast"]:
-            if un_acteur == acteur:
-                for acteur in film["cast"]:
-                    if acteur != un_acteur:
-                        les_collabos.add(acteur)
-                break
-    return les_collabos
-
-
-
-def collabo_commmun(acteur1,acteur2,films):
-    """Permet d'avoir les collaborateurs en commun de deux acteurs
-
-    Args:
-        acteur1 (str): _description_
-        acteur2 (str): _description_
-        films (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    collabos_acteur1 = collabo(acteur1,films)
-    collabos_acteur2 = collabo(acteur2,films)
-    collabos_en_commun = set()
-    for collabo_acteur1 in collabos_acteur1:
-        for collabo_acteur2 in collabos_acteur2:
-            if collabo_acteur2 == collabo_acteur1:
-                collabos_en_commun.add(collabo_acteur1)
-    return collabos_en_commun
-
-
-def creer_liaison(film):
-    res = []
-    for acteur1 in film["cast"]:
-
-        for acteur2 in film["cast"]:
-            liaison = [acteur1]
-            liaison.append(acteur2)
-            res.append(liaison)
+    res = set()
+    json_file = charge_fichier(un_fichier)
+    for films in json_file[0]:
+        for acteur in films["cast"]:
+            res.add(acteur)
     return res
 
-un_film = charge_fichier("data_test.txt")[0]
-#print(creer_liaison(un_film))
+def json_vers_nx(un_fichier:str):
+    graph = nx.Graph()
+    liste_films = charge_fichier(un_fichier)[0]
+    for i in range(len(liste_films)):
+        for acteur in liste_films[i]["cast"]:
+            if acteur not in graph.nodes():
+                graph.add_node(acteur)
+            for autre_acteur in liste_films[i]["cast"]:
+                if acteur != autre_acteur and (acteur,autre_acteur) not in graph.edges():
+                    graph.add_edge(acteur,autre_acteur)
+    return graph
 
 
+G = json_vers_nx("./data.json")
 
+def dessiner_graph(G:dict):
+    pos = nx.fruchterman_reingold_layout(G, k=2)
+    nx.draw(G, pos=nx.circular_layout(G), with_labels= False,node_size= 50,node_color= "lightgreen",font_size = 10,linewidths = 2)
+    plt.show()
+
+def collaborateurs_communs(G:dict,u:str,v:str):
+    """renvoie l'ensemble des collaborateurs en commun des deux acteurs
+
+    Args:
+        G (dict): le graphe
+        u (str): un acteur
+        v (str): un autre acteur
+
+    Returns:
+        set: ensemble des collaborateurs en communs
+    """
+    return nx.common_neighbors(G,u,v)
 
 # Q3
 
