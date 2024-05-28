@@ -4,53 +4,37 @@ import json
 
 #G = nx.Graph()
 
-def charge_fichier(nom_fichier:str):
+def charge_fichier(chemin:str):
     """Creer une liste de films
 
     Args:
-        nom_fichier (str): le chemin d'un fichier
+        chemin (str): le chemin d'un fichier
 
     Returns:
         list: une liste de films
     """
     fichier_chargee = []
-    fic = open(nom_fichier,'r')
+    fic = open(chemin,'r')
     for ligne in fic:
         fichier_chargee.append(eval(ligne.strip()))
     fic.close()
     return fichier_chargee
 
-def creer_json(un_fichier:str):
+def creer_json(chemin:str):
     """Permet de convertir un fichier txt en json
 
     Args:
-        un_fichier (str): un fichier txt
+        chemin (str): un fichier txt
     """
-    txt_file = charge_fichier(un_fichier)
+    txt_file = charge_fichier(chemin)
     json_file = open("data.json", "w")
-    with open(un_fichier) as fic:
+    with open(chemin) as fic:
         json.dump(txt_file,json_file,sort_keys=False,ensure_ascii=False)
     json_file.close()
 
-def tout_les_acteurs(un_fichier:str):
-    """Permet d'avoir l'ensemble des acteurs dans un fichier json
-
-    Args:
-        un_fichier (str): un fichier json
-
-    Returns:
-        set: l'ensemble des acteurs
-    """
-    res = set()
-    json_file = charge_fichier(un_fichier)
-    for films in json_file[0]:
-        for acteur in films["cast"]:
-            res.add(acteur)
-    return res
-
-def json_vers_nx(un_fichier:str):
+def json_vers_nx(chemin:str):
     graph = nx.Graph()
-    liste_films = charge_fichier(un_fichier)[0]
+    liste_films = charge_fichier(chemin)[0]
     for i in range(len(liste_films)):
         for acteur in liste_films[i]["cast"]:
             if acteur not in graph.nodes():
@@ -63,12 +47,12 @@ def json_vers_nx(un_fichier:str):
 
 G = json_vers_nx("./data.json")
 
-def dessiner_graph(G:dict):
+def dessiner_graph(G:nx.Graph):
     pos = nx.fruchterman_reingold_layout(G, k=2)
     nx.draw(G, pos=nx.circular_layout(G), with_labels= False,node_size= 50,node_color= "lightgreen",font_size = 10,linewidths = 2)
     plt.show()
 
-def collaborateurs_communs(G:dict,u:str,v:str):
+def collaborateurs_communs(G:nx.Graph,u:str,v:str):
     """renvoie l'ensemble des collaborateurs en commun des deux acteurs
 
     Args:
@@ -83,9 +67,9 @@ def collaborateurs_communs(G:dict,u:str,v:str):
 
 # Q3
 
-def collaborateurs_proches(G,u,k):
+def collaborateurs_proches(G:nx.Graph,u,k): #O(N³)
     """Fonction renvoyant l'ensemble des acteurs à distance au plus k de l'acteur u dans le graphe G. La fonction renvoie None si u est absent du graphe.
-        
+    
     Parametres:
         G: le graphe
         u: le sommet de départ
@@ -107,17 +91,39 @@ def collaborateurs_proches(G,u,k):
     return collaborateurs
 
 
-def est_proche(G,u,v,k=1):
-    if v in collaborateurs_proches(G,u,k):
-        return True
-    else:
-        return False
+def est_proche(G:nx.Graph,u:str,v:str,k:int=1): #O(N⁴)
+    """Permet de savoir si un collaborateur v est à distance k d'un acteur u
+
+    Args:
+        G (dict): le graphe
+        u (str): un acteur
+        v (str): un collaborateur
+        k (int, optional): la distance. Defaults to 1.
+
+    Returns:
+        bool: True si le collaborateur se trouve a distance k d'un acteur sinon False
+    """
+    return v in collaborateurs_proches(G,u,k)
     
-def distance_naive(G,u,v):
+def distance_naive(G:nx.Graph,u,v):
     k=1
     while (u not in collaborateurs_proches(G,v,k)):
         k+=1
     return k
 
-def distance(G,u,v):
+def distance(G:nx.Graph,u,v):
+    ...
+
+
+# Q4
+
+def centralite(G,u):
+    ...
+
+def centre_hollywood(G):
+    ...
+
+# Q5
+
+def eloignement_max(G:nx.Graph):
     ...
