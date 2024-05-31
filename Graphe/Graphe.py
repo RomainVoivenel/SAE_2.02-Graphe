@@ -211,7 +211,7 @@ def dessiner_graph(G:nx.Graph):
     """
     Gdt = nx.dfs_tree(G,centre_hollywood(G))
     nx.set_edge_attributes(Gdt,data)
-    nx.draw(Gdt, pos = nx.planar_layout(Gdt) , with_labels= False,node_size= 50,node_color= "lightgreen",font_size = 10,linewidths = 2)
+    nx.draw(Gdt, pos = nx.planar_layout(Gdt) , with_labels= True,node_size= 100,node_color= "lightgreen",font_size = 3,linewidths = 2)
     plt.show()
 
     
