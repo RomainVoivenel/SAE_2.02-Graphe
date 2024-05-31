@@ -172,28 +172,30 @@ app.config(background="white")
 
 
 
-
-
-
-# Create a File Explorer label
+# Creer un label
 label_file_explorer = customtkinter.CTkLabel(app, 
                             text = "Parcourir un fichier",
                             width = 100, height = 4)
   
-
+# Le controleur du bouton 
 def parcourir_fichier():
-    filename = filedialog.askopenfilename(initialdir = ".",
-                                          title = "Select a File",
-                                          filetypes = ((("Text files","*.txt*")),("All files",".")))
-    label_file_explorer.configure(text="File Opened: "+filename)
-    G = json_vers_nx(filename)
-    dessiner_graph(G)
+    """Controleur de bouton_parcourir. Permet d'ouvrir une fenetre pour choisir un fichier txt et dessiner le graphe
+    """
+    try:
+        filename = filedialog.askopenfilename(initialdir = ".",
+                                              title = "Select a File",
+                                              filetypes = ((("Text files","*.txt*")),("All files",".")))
+        label_file_explorer.configure(text="File Opened: "+filename)
+        G = json_vers_nx(filename)
+        dessiner_graph(G)
+    except:
+        label_file_explorer.configure(text="Impossible d'ouvrir le fichier. Mauvaise données."
     
-button_explore = customtkinter.CTkButton(app, text = "Parcourir",command = parcourir_fichier) 
+button_parcourir = customtkinter.CTkButton(app, text = "Parcourir",command = parcourir_fichier) 
   
 button_exit = customtkinter.CTkButton(app,text = "Quitter",command = exit)
   
-button_explore.grid(column = 1, row = 1,padx = 20, pady = 10)
+button_parcourir.grid(column = 1, row = 1,padx = 20, pady = 10)
   
 label_file_explorer.grid(column = 1, row = 2,padx = 20, pady = 5)
   
@@ -207,11 +209,9 @@ def dessiner_graph(G:nx.Graph):
     Args:
         G (nx.Graph): un graphe
     """
-    Gd = nx.Graph(G)
-    data = {(u,v) : d for u,v,d in G.edges.data()}
-    Gdt = nx.dfs_tree(Gd,centre_hollywood(G))
+    Gdt = nx.dfs_tree(G,centre_hollywood(G))
     nx.set_edge_attributes(Gdt,data)
-    nx.draw(Gdt, pos = nx.planar_layout(Gdt,scale=eloignement_max(Gd)) , with_labels= False,node_size= 50,node_color= "lightgreen",font_size = 10,linewidths = 2)
+    nx.draw(Gdt, pos = nx.planar_layout(Gdt) , with_labels= False,node_size= 50,node_color= "lightgreen",font_size = 10,linewidths = 2)
     plt.show()
 
     
