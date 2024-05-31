@@ -1,10 +1,11 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import json
+from tkinter import *
+from tkinter  import filedialog
+import customtkinter
 
-#G = nx.Graph()
-
-def charge_fichier(chemin:str):
+def json_vers_nx(chemin:str):
     """Creer une liste de films
 
     Args:
@@ -13,41 +14,29 @@ def charge_fichier(chemin:str):
     Returns:
         list: une liste de films
     """
-    fichier_chargee = []
-    fic = open(chemin,'r')
-    for ligne in fic:
-        fichier_chargee.append(eval(ligne.strip()))
-    fic.close()
-    return fichier_chargee
+    G = nx.Graph()
+    
+    with open(chemin, 'r', encoding='utf-8') as fichier:
+        data = [json.loads(line) for line in fichier]
+    
+    for film in data:
+        cast = film['cast']
+        for acteur in cast:
+            G.add_node(acteur)
+        for i in range(len(cast)):
+            for j in range(i + 1, len(cast)):
+                G.add_edge(cast[i], cast[j])
+    
+    return G
 
-def creer_json(chemin:str):
-    """Permet de convertir un fichier txt en json
-
-    Args:
-        chemin (str): un fichier txt
-    """
-    txt_file = charge_fichier(chemin)
-    json_file = open("data.json", "w")
-    with open(chemin) as fic:
-        json.dump(txt_file,json_file,sort_keys=False,ensure_ascii=False)
-    json_file.close()
-
-def json_vers_nx(chemin:str):
-    graph = nx.Graph()
-    liste_films = charge_fichier(chemin)[0]
-    for i in range(len(liste_films)):
-        for acteur in liste_films[i]["cast"]:
-            if acteur not in graph.nodes():
-                graph.add_node(acteur)
-            for autre_acteur in liste_films[i]["cast"]:
-                if acteur != autre_acteur and (acteur,autre_acteur) not in graph.edges():
-                    graph.add_edge(acteur,autre_acteur)
-    return graph
-
-
-G = json_vers_nx("./data.json")
+G = json_vers_nx("Graphe/data.txt")
 
 def dessiner_graph(G:nx.Graph):
+    """Permet d'afficher le graphe
+
+    Args:
+        G (nx.Graph): un graphe
+    """
     pos = nx.fruchterman_reingold_layout(G, k=2)
     nx.draw(G, pos=nx.circular_layout(G), with_labels= False,node_size= 50,node_color= "lightgreen",font_size = 10,linewidths = 2)
     plt.show()
@@ -67,7 +56,7 @@ def collaborateurs_communs(G:nx.Graph,u:str,v:str):
 
 # Q3
 
-def collaborateurs_proches(G:nx.Graph,u,k): #O(N³)
+def collaborateurs_proches(G:nx.Graph,u:str,k:int): #O(N³)
     """Fonction renvoyant l'ensemble des acteurs à distance au plus k de l'acteur u dans le graphe G. La fonction renvoie None si u est absent du graphe.
     
     Parametres:
@@ -91,7 +80,7 @@ def collaborateurs_proches(G:nx.Graph,u,k): #O(N³)
     return collaborateurs
 
 
-def est_proche(G:nx.Graph,u:str,v:str,k:int=1): #O(N⁴)
+def est_proche(G:nx.Graph,u:str,v:str,k:int=1): #O(N³)
     """Permet de savoir si un collaborateur v est à distance k d'un acteur u
 
     Args:
@@ -105,25 +94,101 @@ def est_proche(G:nx.Graph,u:str,v:str,k:int=1): #O(N⁴)
     """
     return v in collaborateurs_proches(G,u,k)
     
-def distance_naive(G:nx.Graph,u,v):
+def distance_naive(G:nx.Graph,u:str,v:str): #O(N³)
+    """Permet de déterminer la distance entre deux acteurs
+
+    Args:
+        G (nx.Graph): un graphe
+        u (str): un acteur
+        v (str): un autre acteur
+
+    Returns:
+        int: la distance entre deux acteurs
+    """
     k=1
     while (u not in collaborateurs_proches(G,v,k)):
         k+=1
     return k
 
-def distance(G:nx.Graph,u,v):
-    ...
+def distance(G:nx.Graph,u:str,v:str):
+    """Permet de déterminer la distance entre deux acteurs
+
+    Args:
+        G (nx.Graph): un graphe
+        u (str): un acteur
+        v (str): un autre acteur
+
+    Returns:
+        int: la distance entre deux acteurs
+    """
+    return nx.shortest_path_length(G, u, v)
 
 
 # Q4
 
-def centralite(G,u):
-    ...
+def centralite(G:nx.Graph,u:str):
+    """Permet d'avoir la plus grande distance qui sépare un acteur donnée en paramètre d'un autre acteur
 
-def centre_hollywood(G):
-    ...
+    Args:
+        G (nx.Graph): un graphe
+        u (str): un acteur
+
+    Returns:
+        int: la plus grande distance qui le sépare d'un autre acteur
+    """
+    res = nx.single_source_shortest_path_length(G, u)
+    return max(res.values())
+
+def centre_hollywood(G:nx.Graph):
+    """Permet d'avoir l'acteur le plus central d'un graphe
+
+    Args:
+        G (nx.Graph): un graphe
+
+    Returns:
+        str: l'acteur le plus central
+    """
+    return min((centralite(G, actor), actor) for actor in G.nodes())[1]
 
 # Q5
 
 def eloignement_max(G:nx.Graph):
+    """Permet d'avoir la distance maximum entre toutes les paires d'acteurs
+
+    Args:
+        G (nx.Graph): un graphe
+
+    Returns:
+        int: la distance maximum entre toutes les paires d'acteurs du graphe
+    """
+    # le graphique pouvant ne pas etre connexe on prend le sous-graphe le plus grand
+    largest_cc = max(nx.connected_components(G), key=len)
+    subgraph = G.subgraph(largest_cc)
+    
+    eccentricity = nx.eccentricity(subgraph)
+    return max(eccentricity.values())
+
+print(eloignement_max(G))
+
+# Q bonus
+
+def centralite_groupe(G,S):
     ...
+
+
+
+
+# Application
+app = customtkinter.CTk()
+app.geometry("400x150")
+
+def parcourir_fichier():
+    filename = filedialog.askopenfilename(initialdir = "/",
+                                          title = "Select a File",
+                                          filetypes = (("Text files",
+                                                        "*.txt*"),
+                                                       ("all files",
+                                                        "*.*")))
+
+
+app.mainloop()
