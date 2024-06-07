@@ -7,7 +7,7 @@ import random
 
 # Application
 app = customtkinter.CTk()
-app.geometry("600x400")
+app.geometry("1920x1080")
 app.title("À la conquête d'Hollywood")
 app.config(background="white")
 
@@ -23,7 +23,6 @@ def parcourir_fichier():
         G = json_vers_nx(filename)
         dessiner_graph(G)
         activer_boutons()
-        return G
     except Exception as e:
         label_file_explorer.configure(text=f"Erreur: {e}")
 
@@ -32,10 +31,12 @@ def dessiner_graph(G: nx.Graph):
     plt.figure(figsize=(10, 7))
     nx.draw(Gdt, pos=nx.planar_layout(Gdt), with_labels=True, node_size=500, node_color="lightgreen", font_size=10, linewidths=2, edge_color="gray", font_color="black")
     plt.title("Graphe des acteurs d'Hollywood")
+    plt.savefig("graphe.svg")
     plt.show()
 
 # Activer les boutons dès qu'un fichier est chargé
 def activer_boutons():
+    button_centre_hollywood.configure(state="normal")
     button_communs.configure(state="normal")
     button_proches.configure(state="normal")
     button_distance.configure(state="normal")
@@ -131,20 +132,30 @@ def popup_distance():
 
     button_submit = customtkinter.CTkButton(popup, text="Submit", command=submit)
     button_submit.grid(column=0, row=2, padx=20, pady=10)
+    
+def dessiner_centre_hollywood(G: nx.Graph):
+    centre = centre_hollywood(G)
+    Gdt = nx.dfs_tree(G, centre)
+    plt.figure(figsize=(10, 7))
+    nx.draw(Gdt, pos=nx.planar_layout(Gdt), with_labels=True, node_size=500, node_color="lightgreen", font_size=10, linewidths=2, edge_color="gray", font_color="black")
+    plt.title("Graphe de l'acteur au centre d'Hollywood")
+    plt.savefig(f"centre_hollywood_{centre}.svg")
+    plt.show()
 
 # Ajout de boutons
 button_parcourir = customtkinter.CTkButton(app, text="Parcourir", command=parcourir_fichier)
-G = button_parcourir.cget("command")
 button_exit = customtkinter.CTkButton(app, text="Quitter", command=exit)
 
 button_communs = customtkinter.CTkButton(app, text="Collaborateurs Communs", command=popup_collaborateurs_communs, state="disabled")
 button_proches = customtkinter.CTkButton(app, text="Collaborateurs Proches", command=popup_collaborateurs_proches, state="disabled")
 button_distance = customtkinter.CTkButton(app, text="Distance", command=popup_distance, state="disabled")
+button_centre_hollywood = customtkinter.CTkButton(app, text="Afficher Centre Hollywood", command=lambda: dessiner_centre_hollywood(G), state="disabled")
 
 label_result = customtkinter.CTkLabel(app, text="Résultat")
 
 button_parcourir.grid(column=1, row=1, padx=20, pady=10)
 label_file_explorer.grid(column=1, row=2, padx=20, pady=5)
+button_centre_hollywood.grid(column=1, row=3, padx=20, pady=5)
 button_communs.grid(column=1, row=4, padx=20, pady=5)
 button_proches.grid(column=1, row=5, padx=20, pady=5)
 button_distance.grid(column=1, row=6, padx=20, pady=5)

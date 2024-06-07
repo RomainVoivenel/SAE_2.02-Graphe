@@ -18,19 +18,23 @@ def json_vers_nx(chemin:str): #O(n³)
     G = nx.Graph()
     
     with open(chemin, 'r', encoding='utf-8') as fichier:
-        data = [json.loads(line) for line in fichier]
-    
+        data = [json.loads(line.strip()) for line in fichier]
+    print(data)
     for film in data:
-        cast = film['cast']
+        print(film ,"\n","\n")
+        cast = [acteur.replace("[[", "").replace("]]", "") for acteur in film['cast']]
         for acteur in cast:
-            G.add_node(acteur)
+            if acteur not in G.nodes():
+                G.add_node(acteur)
+
         for i in range(len(cast)):
-            for j in range(i + 1, len(cast)):
-                G.add_edge(cast[i], cast[j])
+            for j in range(i +1, len(cast)):
+                if not G.has_edge(cast[i], cast[j]):
+                    G.add_edge(cast[i], cast[j])
     
     return G
 
-def collaborateurs_communs(G: dict, u: str, v: str):
+def collaborateurs_communs(G, u: str, v: str):
     """Renvoie l'ensemble des collaborateurs en commun des deux acteurs
 
     Args:
@@ -41,8 +45,10 @@ def collaborateurs_communs(G: dict, u: str, v: str):
     Returns:
         set: ensemble des collaborateurs en communs
     """
-    voisins_u = set(G[u])
-    voisins_v = set(G[v])
+    voisins_u = set(nx.neighbors(G,u))
+    print(voisins_u)
+    voisins_v = set(nx.neighbors(G,v))
+    print(voisins_v)
     return voisins_u.intersection(voisins_v)
 
 
@@ -174,8 +180,8 @@ def centre_hollywood(G: dict):
     Returns:
         str: l'acteur le plus central
     """
-    centralites = {actor: centralite(G, actor) for actor in G}
-    return min(centralites, key=centralites.get)
+    centralites = {actor: centralite(G, actor) for actor in G.nodes}
+    return max(centralites, key=centralites.get)
 
 
 def eloignement_max(G: dict):
