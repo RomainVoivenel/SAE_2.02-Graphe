@@ -19,9 +19,7 @@ def json_vers_nx(chemin:str): #O(n³)
     
     with open(chemin, 'r', encoding='utf-8') as fichier:
         data = [json.loads(line.strip()) for line in fichier]
-    print(data)
     for film in data:
-        print(film ,"\n","\n")
         cast = [acteur.replace("[[", "").replace("]]", "") for acteur in film['cast']]
         for acteur in cast:
             if acteur not in G.nodes():
@@ -31,8 +29,12 @@ def json_vers_nx(chemin:str): #O(n³)
             for j in range(i +1, len(cast)):
                 if not G.has_edge(cast[i], cast[j]):
                     G.add_edge(cast[i], cast[j])
+                    
+    print("ready")
     
     return G
+
+c =json_vers_nx("Graphe/data_100.txt")
 
 def collaborateurs_communs(G, u: str, v: str):
     """Renvoie l'ensemble des collaborateurs en commun des deux acteurs
@@ -46,11 +48,10 @@ def collaborateurs_communs(G, u: str, v: str):
         set: ensemble des collaborateurs en communs
     """
     voisins_u = set(nx.neighbors(G,u))
-    print(voisins_u)
     voisins_v = set(nx.neighbors(G,v))
-    print(voisins_v)
     return voisins_u.intersection(voisins_v)
 
+#print(collaborateurs_communs(c, "Al Pacino", "Paul Dooley"))
 
 def collaborateurs_proches(G: dict, u: str, k: int): #O(N³)
     """Fonction renvoyant l'ensemble des acteurs à distance au plus k de l'acteur u dans le graphe G. La fonction renvoie None si u est absent du graphe.
@@ -78,6 +79,8 @@ def collaborateurs_proches(G: dict, u: str, k: int): #O(N³)
 
     return collaborateurs
 
+#print(collaborateurs_proches(c, "Al Pacino", 1))
+
 
 def est_proche(G: dict, u: str, v: str, k: int = 1): #O(N³)
     """Permet de savoir si un collaborateur v est à distance k d'un acteur u
@@ -92,6 +95,8 @@ def est_proche(G: dict, u: str, v: str, k: int = 1): #O(N³)
         bool: True si le collaborateur se trouve a distance k d'un acteur sinon False
     """
     return v in collaborateurs_proches(G, u, k)
+
+#print(est_proche(c, "Al Pacino", 'Harry Bugin', 2 ))
 
 
 def distance_naive(G: dict, u: str, v: str): #O(N³)
@@ -109,6 +114,8 @@ def distance_naive(G: dict, u: str, v: str): #O(N³)
     while v not in collaborateurs_proches(G, u, k):
         k += 1
     return k
+
+#print(distance_naive(c, "Al Pacino", 'Harry Bugin' ))
 
 
 def distance(G: dict, u: str, v: str):
@@ -142,6 +149,8 @@ def distance(G: dict, u: str, v: str):
 
     return float('inf')
 
+#print(distance(c, "Al Pacino", 'Harry Bugin' ))
+
 
 def centralite(G: dict, u: str):
     """Permet d'avoir la plus grande distance qui sépare un acteur donnée en paramètre d'un autre acteur
@@ -170,6 +179,8 @@ def centralite(G: dict, u: str):
 
     return max(distances.values())
 
+print(centralite(c, "John Randolph (actor)|John Randolph"))
+
 
 def centre_hollywood(G: dict):
     """Permet d'avoir l'acteur le plus central d'un graphe
@@ -181,7 +192,9 @@ def centre_hollywood(G: dict):
         str: l'acteur le plus central
     """
     centralites = {actor: centralite(G, actor) for actor in G.nodes}
-    return max(centralites, key=centralites.get)
+    return min(centralites, key=centralites.get)
+
+print(centre_hollywood(c))
 
 
 def eloignement_max(G: dict):
@@ -216,6 +229,7 @@ def eloignement_max(G: dict):
     distances_max = {actor: centralite(subgraph, actor) for actor in subgraph}
     return max(distances_max.values())
 
+print(eloignement_max(c))
 
 # Q bonus
 

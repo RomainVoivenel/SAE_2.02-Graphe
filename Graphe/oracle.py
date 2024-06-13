@@ -21,13 +21,13 @@ def parcourir_fichier():
         label_file_explorer.configure(text="Fichier ouvert: " + filename)
         global G
         G = json_vers_nx(filename)
-        dessiner_graph(G)
+        #dessiner_graph(G)
         activer_boutons()
     except Exception as e:
         label_file_explorer.configure(text=f"Erreur: {e}")
 
 def dessiner_graph(G: nx.Graph):
-    Gdt = nx.dfs_tree(G)
+    Gdt = nx.dfs_tree(G, centre_hollywood(G))
     plt.figure(figsize=(10, 7))
     nx.draw(Gdt, pos=nx.planar_layout(Gdt), with_labels=True, node_size=500, node_color="lightgreen", font_size=10, linewidths=2, edge_color="gray", font_color="black")
     plt.title("Graphe des acteurs d'Hollywood")
